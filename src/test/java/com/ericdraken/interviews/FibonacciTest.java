@@ -4,12 +4,14 @@
 
 package com.ericdraken.interviews;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FibonacciTest
 {
@@ -24,6 +26,8 @@ class FibonacciTest
 			{"2", "1"},
 			{"3", "1"},
 			{"4", "2"},
+			{"5", "3"},
+			{"6", "5"},
 			{"10", "34"},
 			{"51", "12586269025"},
 			{"101", "354224848179261915075"},
@@ -35,17 +39,47 @@ class FibonacciTest
 		};
 	}
 
+	/**
+	 * Test that the nth Fibonacci number matches the known values
+	 *
+	 * @param length The length of the desired sequence
+	 * @param nthFib The nth Fib in the sequence
+	 */
 	@ParameterizedTest
 	@MethodSource( value = "nthFibs" )
-	void getSequenceAsArray_valid( String num, String nthFib )
+	void fibonacciIterator_valid( String length, String nthFib )
 	{
-		int numFibs = Integer.valueOf( num, 10 );
-		BigInteger[] fibs = Fibonacci.getSequenceAsArray( Integer.valueOf( num, 10 ) );
+		int numFibs = Integer.valueOf( length, 10 );
 
-		// Length of the sequence must match the supplied length
-		assertEquals( numFibs, fibs.length );
+		FibonacciIterator it = new FibonacciIterator();
+		for ( int i = 1; i < numFibs; i++ )
+		{
+			it.next();	// Burn through the sequence
+		}
+
+		BigInteger lastFib = it.next();
 
 		// The last number in the Fibonacci sequence must match that expected
-		assertEquals( new BigInteger( nthFib ), fibs[ numFibs-1 ] );
+		assertEquals( new BigInteger( nthFib ), lastFib );
+	}
+
+	/**
+	 * Test that a very large Fibonacci sequence takes under a second
+	 * and doesn't cause an OOM exception
+	 */
+	@Test
+	void fibonacciIterator_timings()
+	{
+		long start = System.currentTimeMillis();
+
+		FibonacciIterator it = new FibonacciIterator();
+		for ( int i = 1; i <= 100_000; i++ )
+		{
+			it.next();	// Burn through the sequence
+		}
+
+		long end = System.currentTimeMillis();
+		System.out.println( "Calculating the 100,000th Fib took: " + String.format( "%d ms", end-start ) );
+		assertTrue( end-start <= 1000 );
 	}
 }
